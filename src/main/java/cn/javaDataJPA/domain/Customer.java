@@ -2,6 +2,8 @@ package cn.javaDataJPA.domain;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity //声明实体类
@@ -30,6 +32,33 @@ public class Customer implements Serializable {
 
     @Column(name="cust_phone")//指定和表中cust_phone字段的映射关系
     private String custPhone;
+
+    //配置客户和联系人的一对多关系一个客户多个联系人
+    /*//放弃外键维护权的配置将如下配置改为.通过保存的案例，我们可以发现在设置了双向关系之后，会发送两条insert语句，一条多余的update语句，那我们的解决是思路很简单，就是一的一方放弃维护权
+    @OneToMany(targetEntity=LinkMan.class)
+    @JoinColumn(name="lkm_cust_id",referencedColumnName="cust_id")*/
+
+    /**
+     * cascade:配置级联操作
+     * 		CascadeType.MERGE	级联更新
+     * 		CascadeType.PERSIST	级联保存：
+     * 		CascadeType.REFRESH 级联刷新：
+     * 		CascadeType.REMOVE	级联删除：
+     * 		CascadeType.ALL		包含所有
+     */
+    //@OneToMany(mappedBy="customer",cascade=CascadeType.ALL)
+
+
+    /**
+     * 在客户对象的@OneToMany注解中添加fetch属性
+     * 		FetchType.EAGER	：立即加载
+     * 		FetchType.LAZY	：延迟加载
+     */
+    //@OneToMany(mappedBy="customer",fetch=FetchType.EAGER)
+
+    @OneToMany(mappedBy="customer")
+    private Set<LinkMan> linkMans = new HashSet<LinkMan>(0);
+
 
     public Long getCustId() {
         return custId;
@@ -74,6 +103,13 @@ public class Customer implements Serializable {
         this.custPhone = custPhone;
     }
 
+    public Set<LinkMan> getLinkMans() {
+        return linkMans;
+    }
+    public void setLinkMans(Set<LinkMan> linkMans) {
+        this.linkMans = linkMans;
+    }
+
     @Override
     public String toString() {
         return "Customer{" +
@@ -83,7 +119,7 @@ public class Customer implements Serializable {
                 ", custIndustry='" + custIndustry + '\'' +
                 ", custLevel='" + custLevel + '\'' +
                 ", custAddress='" + custAddress + '\'' +
-                ", custPhone='" + custPhone + '\'' +
+                ", custPhone='" + custPhone +
                 '}';
     }
 }

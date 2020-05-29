@@ -1,6 +1,7 @@
 package cn.javaDataJPA.dao;
 
 import cn.javaDataJPA.domain.Customer;
+import cn.javaDataJPA.domain.LinkMan;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:applicationContext.xml")
@@ -22,6 +21,11 @@ public class specificationTest {
     //依赖注入ICustomer
     @Autowired
     private ICustomerDao iCustomerDao;
+
+    //依赖注入ICustomer
+    @Autowired
+    private ILinkManDao iLinkManDao;
+
     @Test
     public void testSpecifications() {
         //使用匿名内部类的方式，创建一个Specification的实现类，并实现toPredicate方法
@@ -67,6 +71,27 @@ public class specificationTest {
         System.out.println(page.getTotalPages());//得到的总页数
 
     }
+
+    //specification 多表查询
+    @Test
+    public void testFind() {
+        Specification<LinkMan> spec = new Specification<LinkMan>() {
+            public Predicate toPredicate(Root<LinkMan> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                //Join代表链接查询，通过root对象获取
+                //创建的过程中，第一个参数为关联对象的属性名称，第二个参数为连接查询的方式（left，inner，right）
+                //JoinType.LEFT : 左外连接,JoinType.INNER：内连接,JoinType.RIGHT：右外连接
+                Join<LinkMan, Customer> join = root.join("customer",JoinType.INNER);
+                return cb.like(join.get("custName").as(String.class),"传智播客%");
+            }
+        };
+        List<LinkMan> list = iLinkManDao.findAll(spec);
+        for (LinkMan linkMan : list) {
+            System.out.println(linkMan);
+        }
+    }
+
+
+
 
 
 
